@@ -6,19 +6,22 @@ import kotlin.random.Random
 data class Room(val id: String, val aliveUsers: ArrayList<User>, val diedUsers: ArrayList<User>, var winner: String? = null) {
 
     private fun nextVoting() {
+        val onVotingEnd = { diedUser: User ->
+            killUser(diedUser.id!!)
+            nextVoting()
+        }
         winner = checkWinner()
         voting = if (winner == null) {
             if (voting.votingType == User.CIVIL) Voting(getMafia().size, onVotingEnd, User.MAFIA)
             else Voting(aliveUsers.size, onVotingEnd, User.CIVIL)
-        } else Voting(0, null, User.CIVIL)
+        } else Voting(0, {}, User.CIVIL)
     }
 
-    private val onVotingEnd = { diedUser: User ->
+
+    var voting: Voting = Voting(aliveUsers.size, { diedUser: User ->
         killUser(diedUser.id!!)
         nextVoting()
-    }
-
-    var voting: Voting = Voting(aliveUsers.size, onVotingEnd, User.CIVIL)
+    }, User.CIVIL)
 
     init {
         startGame()

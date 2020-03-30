@@ -39,22 +39,13 @@ object Api {
     }
 
     suspend fun getRoom(roomId: String): Room = client.get<Room> {
-        url("http://127.0.0.1:8080/game/room/")
-        parameter("userId", roomId)
+        url("http://127.0.0.1:8080/game/room/{roomId}")
+        parameter("roomId", roomId)
     }
 
-    suspend fun answerCivil(roomId: String, aggressorId: String, victimId: String) {
+    suspend fun answer(roomId: String, aggressorId: String, victimId: String) {
         client.post<Unit> {
-            url("http://127.0.0.1:8080/game/room/answerCivil/{roomId}&{aggressorId}&{victimId}")
-            parameter("aggressorId", aggressorId)
-            parameter("victimId", victimId)
-            parameter("roomId", roomId)
-        }
-    }
-
-    suspend fun answerMafia(roomId: String, aggressorId: String, victimId: String) {
-        client.post<Unit> {
-            url("http://127.0.0.1:8080/game/room/answerMafia/{roomId}&{aggressorId}&{victimId}")
+            url("http://127.0.0.1:8080/game/room/answer/{roomId}&{aggressorId}&{victimId}")
             parameter("aggressorId", aggressorId)
             parameter("victimId", victimId)
             parameter("roomId", roomId)

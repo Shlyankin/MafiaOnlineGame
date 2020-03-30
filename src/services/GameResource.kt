@@ -26,20 +26,11 @@ fun Route.widget(gameService: GameService){
             else call.respond(HttpStatusCode.NotFound)
         }
 
-        post("/room/answerCivil/{roomId}&{aggressorId}&{victimId}") {
+        post("/room/answer/{roomId}&{aggressorId}&{victimId}") {
             val roomId = call.parameters["roomId"]?.toString()!!
             val aggressorId = call.parameters["aggressorId"]?.toString()!!
             val victimId = call.parameters["victimId"]?.toString()!!
-            val isSend = gameService.sendAnswer(aggressorId, victimId, roomId, User.CIVIL)
-            if (isSend) call.respond(HttpStatusCode.OK)
-            else call.respond(HttpStatusCode.NotFound)
-        }
-
-        post("/room/answerMafia/{roomId}&{aggressorId}&{victimId}") {
-            val roomId = call.parameters["roomId"]?.toString()!!
-            val aggressorId = call.parameters["aggressorId"]?.toString()!!
-            val victimId = call.parameters["victimId"]?.toString()!!
-            val isSend = gameService.sendAnswer(aggressorId, victimId, roomId, User.MAFIA)
+            val isSend = gameService.sendAnswer(aggressorId, victimId, roomId)
             if (isSend) call.respond(HttpStatusCode.OK)
             else call.respond(HttpStatusCode.NotFound)
         }

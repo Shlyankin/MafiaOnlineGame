@@ -22,6 +22,34 @@ fun printUsers(users: List<User>) {
     }
 }
 
+fun printInfo(room: Room, isMafia: Boolean) {
+    println("Alive Users:")
+    printUsers(room.aliveUsers)
+    println("Died Users:")
+    printUsers(room.diedUsers)
+    if(isMafia) {
+        println("Mafia Users:")
+        printUsers(room.getMafia())
+    }
+}
+
+fun inputUserNumber(min: Int, max: Int): Int {
+    var killNumber: Int? = null
+    while (killNumber == null) {
+        try {
+            killNumber = readLine()?.toInt()
+            while (killNumber!! < min || killNumber >= max)
+            {
+                print("No users with number $killNumber. Try again:")
+                killNumber = readLine()?.toInt()
+            }
+        } catch (e: NumberFormatException) {
+            print("input NUMBER:")
+        }
+    }
+    return killNumber
+}
+
 fun main(args: Array<String>) {
     runBlocking {
         println("Mafia Online")
@@ -39,60 +67,55 @@ fun main(args: Array<String>) {
                 print("")
                 // 404 NotFound while all users dont connect to the server
             }
-            catch (e: Exception) {
-                print("")
-            }
         }
         // game started
         println("game started")
         user = room.getUserById(true, user.id!!)!!
         println("You are " + user.role)
-        while(room?.winner == null) {
+        mainloop@while(room?.winner == null) {
             println("________________NEXT ROUND________________")
-            println("Alive Users:")
-            printUsers(room!!.aliveUsers)
-            println("Died Users:")
-            printUsers(room.diedUsers)
-            println("Civil voting!")
+            printInfo(room!!, user.role == User.MAFIA)
             print("Input number of alive user, which you want to kill: ")
-            var killNumber: Int? = null
-            while (killNumber == null) {
-                try {
-                    killNumber = readLine()?.toInt()
-                } catch (e: NumberFormatException) {
-                }
-            }
-            Api.answerCivil(room.id, user.id!!, room.aliveUsers[killNumber].id!!)
+            var killNumber: Int = inputUserNumber(0, room.aliveUsers.size)
+            Api.answer(room.id, user.id!!, room.aliveUsers[killNumber].id!!)
             println("Waiting other users...")
             do  {
                 Thread.sleep(5000)
                 room = Api.getRoom(room!!.id)
+                if (room.winner != null) break@mainloop
             } while (room?.voting?.votingType == User.CIVIL)
+            if (room?.getUserById(false, user.id!!) != null) {
+                println("You died")
+                break@mainloop
+            }
 
-            println("Alive Users:")
-            printUsers(room!!.aliveUsers)
-            println("Died Users:")
-            printUsers(room.diedUsers)
+            printInfo(room!!, user.role == User.MAFIA)
             println("Mafia voting!")
             if (user.role == User.MAFIA) {
                 print("Input number of alive user, which you want to kill: ")
-                var killNumber: Int? = null
-                while (killNumber == null) {
-                    try {
-                        killNumber = readLine()?.toInt()
-                    } catch (e: NumberFormatException) {
-                    }
-                }
-                Api.answerMafia(room.id, user.id!!, room.aliveUsers[killNumber].id!!)
+                var killNumber = inputUserNumber(0, room.aliveUsers.size)
+                Api.answer(room.id, user.id!!, room.aliveUsers[killNumber].id!!)
             }
 
             println("Waiting...")
             do  {
                 Thread.sleep(5000)
                 room = Api.getRoom(room!!.id)
+                if (room.winner != null) break@mainloop
             } while (room?.voting?.votingType == User.MAFIA)
+
+            if (room?.getUserById(false, user.id!!) != null) {
+                println("________________You died________________")
+                break@mainloop
+            }
         }
-        println("Winner: " + room.winner)
+        while (room?.winner == null) {
+            println("Waiting end of game...")
+            Thread.sleep(15000)
+            room = Api.getRoom(room!!.id)
+            printInfo(room, user.role == User.MAFIA)
+        }
+        println("Winner: " + room?.winner)
         Api.close()
     }
 }

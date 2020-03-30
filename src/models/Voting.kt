@@ -3,7 +3,7 @@ package com.ershov.game.models
 import models.User
 import kotlin.random.Random
 
-class Voting(val requireVoice: Int, val onVotingEnd: ((loser: User) -> Unit?)? = null, val votingType: String) {
+class Voting(val requireVoice: Int, @Transient val onVotingEnd: ((loser: User) -> Unit?), val votingType: String) {
     private val voices = ArrayList<Voice>()
 
     fun sendVoice(voice: Voice): Boolean {
@@ -32,6 +32,6 @@ class Voting(val requireVoice: Int, val onVotingEnd: ((loser: User) -> Unit?)? =
             if (voting[diedUser] == voting[i])
                 diedUsers.add(i)
         diedUser = diedUsers[Random.nextInt(diedUsers.size)]
-        onVotingEnd?.let { it(voices[diedUser].aggressor) }
+        onVotingEnd(voices[diedUser].aggressor)
     }
 }

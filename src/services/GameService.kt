@@ -37,10 +37,11 @@ class GameService {
         return null
     }
 
-    suspend fun sendAnswer(aggressorId: String, victimId: String, roomId: String, usersRole: String): Boolean {
+    suspend fun sendAnswer(aggressorId: String, victimId: String, roomId: String): Boolean {
         findRoomPositionById(roomId)?.let {
             val room = rooms[it]
-            if (room.getUserById(true, aggressorId)?.role != room.voting.votingType)
+            if (room.voting.votingType == User.MAFIA &&
+                room.getUserById(true, aggressorId)?.role != room.voting.votingType)
                 return false
             return room.voting.sendVoice(
                 Voice(room.getUserById(true, aggressorId)!!, room.getUserById(true, victimId)!!))
